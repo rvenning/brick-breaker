@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Brick Breaker DX 🧱 — Neon Arcade</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1020">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brick Breaker">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/gk-base.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧱</text></svg>">
+</head>
+<body>
+
+<!-- Splash -->
+<div class="screen active" id="screen-splash">
+  <div class="splash-inner">
+    <div class="splash-bricks" aria-hidden="true">
+      <span class="b1"></span><span class="b2"></span><span class="b3"></span>
+      <span class="b4"></span><span class="b5"></span><span class="b6"></span>
+    </div>
+    <h1 class="logo">BRICK<span>BREAKER</span><em>DX</em></h1>
+    <p class="tagline">Smash bricks. Catch power-ups. Beat the bosses!</p>
+    <button class="btn big" id="btn-continue-as" style="display:none"></button>
+    <button class="btn big" id="btn-start" onclick="App.play()">🕹️ Play</button>
+    <button class="btn ghost" id="btn-install" style="display:none">📲 Add to Home Screen</button>
+    <div class="splash-foot">
+      <span id="sync-badge">…</span>
+      <button class="btn-sound icon-btn">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile picker (roster + PIN modals rendered by GK.Profiles) -->
+<div class="screen" id="screen-profiles">
+  <header class="bar">
+    <button class="icon-btn" onclick="App.showScreen('splash')">←</button>
+    <h2>Who's playing?</h2>
+    <button class="btn-sound icon-btn">🔊</button>
+  </header>
+  <div class="profile-list" id="profile-list"></div>
+</div>
+
+<!-- Level map -->
+<div class="screen" id="screen-map">
+  <header class="bar">
+    <button class="icon-btn" onclick="App.play()">👥</button>
+    <div class="map-player" id="map-player"></div>
+    <span class="map-stat" id="map-stars"></span>
+    <span class="map-stat" id="map-coins"></span>
+    <button class="icon-btn" onclick="App.showLeaderboard()">🏆</button>
+  </header>
+  <button class="btn big continue" id="btn-continue"></button>
+  <button class="btn blue wide shopbtn" onclick="App.showShop()">🛒 Upgrade Shop</button>
+  <div class="level-grid" id="level-grid"></div>
+</div>
+
+<!-- Upgrade shop -->
+<div class="screen" id="screen-shop">
+  <header class="bar">
+    <button class="icon-btn" onclick="App.showMap()">←</button>
+    <h2>🛒 Upgrades</h2>
+    <span class="map-stat" id="shop-coins"></span>
+  </header>
+  <p class="shop-hint">Permanent upgrades — earn coins by clearing levels!</p>
+  <div class="shop-list" id="shop-list"></div>
+</div>
+
+<!-- Leaderboard -->
+<div class="screen" id="screen-leaderboard">
+  <header class="bar">
+    <button class="icon-btn" onclick="App.showMap()">←</button>
+    <h2>🏆 Family Leaderboard</h2>
+    <button class="btn-sound icon-btn">🔊</button>
+  </header>
+  <div class="lb-rows" id="lb-rows"></div>
+</div>
+
+<!-- Game -->
+<div class="screen" id="screen-game">
+  <header class="bar game-bar">
+    <button class="icon-btn" onclick="Game.pause()">⏸</button>
+    <span class="hud" id="hud-level"></span>
+    <span class="hud score" id="hud-score">0</span>
+    <span class="hud combo" id="hud-combo"></span>
+    <span class="hud fx" id="hud-fx"></span>
+    <span class="hud lives" id="hud-lives">♥♥♥</span>
+  </header>
+  <div class="game-stage">
+    <canvas id="cv"></canvas>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="screen" id="screen-results">
+  <div class="res-inner">
+    <div class="res-emoji" id="res-emoji">🎉</div>
+    <h2 class="res-title" id="res-title"></h2>
+    <div class="res-stars" id="res-stars"></div>
+    <div class="res-score" id="res-score"></div>
+    <div class="res-stats">
+      <div id="res-combo"></div>
+      <div id="res-coins"></div>
+    </div>
+    <p class="res-finished" id="res-finished" style="display:none">👑 You've conquered all 30 levels and every boss. You are the Brick Breaker champion!</p>
+    <div class="res-actions">
+      <button class="btn ghost" onclick="App.showMap()">🗺️ Map</button>
+      <button class="btn" id="res-retry" style="display:none"></button>
+      <button class="btn" id="res-next" style="display:none"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Pause modal -->
+<div class="modal" id="modal-pause">
+  <div class="sheet">
+    <h2>⏸ Paused</h2>
+    <div class="row-btns2">
+      <button class="btn green" onclick="Game.resume()">▶️ Resume</button>
+      <button class="btn grey" onclick="Game.quitToMap()">🗺️ Quit</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- gamekit (vendored from rvenning/gamekit into lib/) -->
+<script src="lib/gk-util.js"></script>
+<script src="lib/gk-audio.js"></script>
+<script src="lib/gk-ui.js"></script>
+<script src="lib/gk-storage.js"></script>
+<script src="lib/gk-profiles.js"></script>
+<script src="lib/gk-pwa.js"></script>
+<script src="js/firebase-config.js"></script>
+<!-- data registries -->
+<script src="js/bricks.js"></script>
+<script src="js/powerups.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/upgrades.js"></script>
+<!-- systems -->
+<script src="js/physics.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/game.js"></script>
+<script src="js/bosses.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

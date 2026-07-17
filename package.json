@@ -1,0 +1,8 @@
+{
+  "name": "brick-breaker",
+  "private": true,
+  "description": "Brick Breaker DX — neon arcade brick breaker on gamekit",
+  "scripts": {
+    "test": "node --test"
+  }
+}
