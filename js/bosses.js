@@ -74,21 +74,25 @@ function drawPart(ctx, p, base, glow) {
 // a telegraphed beam, and shakes bricks loose from the ceiling.
 
 Bosses.register("golem", (game) => {
-  const EYE_HP = 6;
+  const EYE_HP = 5;
+  const SWAY = 16;
   const body = [];
-  // face: 8×5 armored blocks centred, with mouth gap and open shafts under
-  // the eyes so balls and lasers can actually reach them from below
+  // face: 8×5 armored blocks centred, with a mouth gap and an open shaft under
+  // each eye so balls and lasers can reach them from below. The shafts are two
+  // columns wide and the eye fills the full width of its shaft, so a ball that
+  // gets in rattles into the eye instead of needing a pixel-perfect entry.
   for (let r = 0; r < 5; r++) for (let c = 0; c < 8; c++) {
-    if ((c === 2 || c === 5) && r >= 1) continue;           // eye + shaft below it
+    if (c >= 1 && c <= 2 && r >= 1) continue;               // left eye + shaft
+    if (c >= 5 && c <= 6 && r >= 1) continue;               // right eye + shaft
     if (r === 3 && c >= 2 && c <= 5) continue;              // mouth
     body.push(P(70 + c * 35, 60 + r * 22, 33, 20, { armored: true }));
   }
   const eyes = [
-    P(70 + 2 * 35, 60 + 22, 33, 20, { weak: true, hp: EYE_HP, max: EYE_HP, color: "#fde047" }),
-    P(70 + 5 * 35, 60 + 22, 33, 20, { weak: true, hp: EYE_HP, max: EYE_HP, color: "#fde047" }),
+    P(70 + 1 * 35, 60 + 22, 68, 20, { weak: true, hp: EYE_HP, max: EYE_HP, color: "#fde047" }),
+    P(70 + 5 * 35, 60 + 22, 68, 20, { weak: true, hp: EYE_HP, max: EYE_HP, color: "#fde047" }),
   ];
   const parts = body.concat(eyes);
-  let sway = 0, atkT = 2.2, atk = 0, beamX = null, beamT = 0;
+  let sway = 0, atkT = 2.8, atk = 0, beamX = null, beamT = 0;
   const baseX = parts.map(p => p.x);
 
   return {
@@ -114,11 +118,11 @@ Bosses.register("golem", (game) => {
 
     update(dt) {
       sway += dt;
-      const dx = Math.sin(sway * 0.7) * 26;
+      const dx = Math.sin(sway * 0.7) * SWAY;
       parts.forEach((p, i) => { p.x = baseX[i] + dx; });
       tickFlashes(parts, dt);
 
-      const rage = this.hpFrac() < 0.5 ? 0.65 : 1;   // phase 2: faster attacks
+      const rage = this.hpFrac() < 0.5 ? 0.8 : 1;    // phase 2: faster attacks
       atkT -= dt;
       if (beamX !== null) {
         beamT -= dt;
@@ -130,7 +134,7 @@ Bosses.register("golem", (game) => {
       }
       if (atkT <= 0) {
         atk = (atk + 1) % 3;
-        atkT = 3.1 * rage;
+        atkT = 3.5 * rage;
         if (atk === 0) {          // fireball spit from the mouth, aimed at paddle
           const mx = 210 + dx, my = 150;
           const a = Math.atan2(game.paddle.y - my, game.paddle.x - mx);
@@ -138,7 +142,7 @@ Bosses.register("golem", (game) => {
           Sfx.bossShoot();
         } else if (atk === 1) {   // telegraphed beam
           beamX = 60 + Math.random() * 300;
-          beamT = 1.2;
+          beamT = 1.5;
           Sfx.bossWarn();
         } else {                  // drop bricks
           for (let i = 0; i < 2 + (rage < 1 ? 1 : 0); i++)
@@ -155,11 +159,11 @@ Bosses.register("golem", (game) => {
         if (!e.alive) { drawPart(ctx, e, "#1e293b"); continue; }
         drawPart(ctx, e, "#facc15", "#fde047");
         ctx.fillStyle = "#7c2d12";
-        ctx.beginPath(); ctx.arc(e.x + e.w / 2, e.y + e.h / 2, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e.x + e.w / 2, e.y + e.h / 2, 6, 0, Math.PI * 2); ctx.fill();
       }
       // mouth glow
       ctx.fillStyle = "rgba(251,146,60,.35)";
-      const dx = Math.sin(sway * 0.7) * 26;
+      const dx = Math.sin(sway * 0.7) * SWAY;
       ctx.fillRect(140 + dx, 126, 140, 20);
       // beam telegraph
       if (beamX !== null && beamT > 0.6) {
