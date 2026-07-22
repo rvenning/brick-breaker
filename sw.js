@@ -3,7 +3,7 @@
 // newest deploy; offline players get the last version they loaded. Firestore
 // sync degrades gracefully offline because storage.js falls back to localStorage.
 
-const CACHE = "brickbreaker-v2";
+const CACHE = "brickbreaker-v3";
 
 // App shell precached at install so the game works offline from the first visit.
 const SHELL = [
@@ -24,7 +24,7 @@ const SHELL = [
   "js/levels.js",
   "js/upgrades.js",
   "js/physics.js",
-  "js/fx.js",
+  "lib/gk-fx.js",
   "js/storage.js",
   "js/game.js",
   "js/bosses.js",
